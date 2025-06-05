@@ -9,7 +9,6 @@ package utils
 
 import (
 	"fmt"
-	"reflect"
 )
 
 
@@ -27,12 +26,4 @@ func FromPtr[T any](v *T) T {
 		return zero
 	}
 	return *v
-}
-
-func IsNil(v any) bool {
-	return v == nil || (reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
-}
-
-func IsNotNil(v any) bool {
-	return !IsNil(v)
 }

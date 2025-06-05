@@ -9,20 +9,14 @@ func main() {
 	logger := utils.GetLogger()
 	
 	db, err := pkg.NewDB(pkg.WithSqliteInMemoryDB())
-	if utils.IsNotNil(err) {
+	if err != nil {
 		logger.Fatalf("Failed to setup database: %v", err)
 	}
 	logger.Infof("Database setup complete")
-
-	db.AutoMigrate(&pkg.Product{})
-	db.AutoMigrate(&pkg.Order{})
-
-	tables, err := db.Migrator().GetTables()
-	if utils.IsNotNil(err) {
-		logger.Fatal("failed to get tables")
+	err = pkg.SeedDatabase(db)
+	if err != nil {
+		logger.Fatalf("Failed to seed database: %v", err)
 	}
-	logger.Info(tables)
 
 	logger.Infof("Database migration complete")
-
 }

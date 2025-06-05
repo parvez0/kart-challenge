@@ -19,17 +19,14 @@ type Product struct {
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 }
 
-type Order struct {
-	ID        uint `gorm:"primaryKey"`
-	Items     []map[string]any `gorm:"type:jsonb"`
-	Products  []Product `gorm:"many2many:order_products;"`
-	CreatedAt time.Time `gorm:"autoCreateTime"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+type OrderItem struct {
+	ProductID uint `gorm:"for"`
+	Quantity  int  `json:"quantity"`
 }
 
 type OrderReq struct {
-	Items []map[string]any `json:"items"`
-	Products []Product `json:"products"`
+	Items    []OrderItem `json:"items"`
+	Products []Product   `json:"products"`
 }
 
 type ApiResonse struct {
@@ -41,4 +38,22 @@ type ApiResonse struct {
 func (res *ApiResonse) Serialize() []byte {
 	bytes, _ := json.Marshal(res)
 	return bytes
+}
+
+// Each coupon has a unique code and can be associated with multiple source files
+type Coupon struct {
+	ID         uint          `gorm:"primaryKey"`                    
+	Code       string        `gorm:"unique;not null"`              
+	SourceFile []CouponSource `gorm:"many2many:coupon_sources;constraint:OnDelete:CASCADE"`    
+}
+
+// A source can contain multiple coupons, and coupons can come from multiple sources
+type CouponSource struct {
+	ID     uint     `gorm:"primaryKey;autoIncrement"`                    
+	Source string   `gorm:"not null;unique"`                      
+	Coupon []Coupon `gorm:"many2many:coupon_sources;constraint:OnDelete:CASCADE"`     
+}
+
+func (CouponSource) TableName() string {
+	return "coupon_source"
 }
