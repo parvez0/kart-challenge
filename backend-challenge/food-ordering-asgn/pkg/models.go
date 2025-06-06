@@ -20,13 +20,26 @@ type Product struct {
 }
 
 type OrderItem struct {
-	ProductID uint `gorm:"for" json:"product_id"`
-	Quantity  int  `json:"quantity"`
+	ID        uint   `gorm:"primaryKey" json:"-"`
+	ProductID string `json:"productId"`
+	Quantity  int    `json:"quantity"`
+}
+
+func(o *OrderItem) TableName() string {
+	return "order_items"
+}
+
+type Order struct {
+	ID        uint        `gorm:"primaryKey" json:"id"`
+	Items     []OrderItem `gorm:"foreignKey:id" json:"items"`
+	Products  []Product   `gorm:"many2many:product_list;" json:"products"`
+	CreatedAt time.Time   `gorm:"autoCreateTime" json:"-"`
+	UpdatedAt time.Time   `gorm:"autoUpdateTime" json:"-"`
 }
 
 type OrderReq struct {
-	Items    []OrderItem `json:"items"`
-	Products []Product   `json:"products"`
+	CouponCode string      `json:"couponCode"`
+	Items      []OrderItem `json:"items"`
 }
 
 type ApiResonse struct {

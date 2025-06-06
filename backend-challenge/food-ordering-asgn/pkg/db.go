@@ -4,11 +4,12 @@ package pkg
 // It provides functions to initialize the database, create tables, and manage connections.
 
 import (
+
 	"github.com/parvez0/food-ordering-asgn/utils"
 
 	_ "github.com/mattn/go-sqlite3"
-	gorm "gorm.io/gorm"
 	gormsqlite "gorm.io/driver/sqlite"
+	gorm "gorm.io/gorm"
 )
 
 var (

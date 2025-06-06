@@ -10,7 +10,7 @@ import (
 
 func main() {
 	logger := utils.GetLogger()
-	
+
 	db, err := pkg.NewDB(pkg.WithSqliteInMemoryDB())
 	if err != nil {
 		logger.Fatalf("Failed to setup database: %v", err)

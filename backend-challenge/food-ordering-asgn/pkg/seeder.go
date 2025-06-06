@@ -8,7 +8,6 @@ import (
 	"regexp"
 
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 
 	"github.com/parvez0/food-ordering-asgn/utils"
 )
@@ -19,13 +18,10 @@ import (
 // SeedDatabase initializes the database with initial data
 func SeedDatabase(db *gorm.DB) error {
 	// Migrate all tables in correct order
-	if err := db.AutoMigrate(&CouponSource{}); err != nil {
+	if err := db.AutoMigrate(&CouponSource{}, &Coupon{}); err != nil {
 		return utils.WrapError(err, "failed to migrate CouponSource table")
 	}
-	if err := db.AutoMigrate(&Coupon{}); err != nil {
-		return utils.WrapError(err, "failed to migrate Coupon table")
-	}
-	if err := db.AutoMigrate(&Product{}); err != nil {
+	if err := db.AutoMigrate(&Product{}, &Order{}, &OrderItem{}); err != nil {
 		return utils.WrapError(err, "failed to migrate Product table")
 	}
 
@@ -124,19 +120,40 @@ func seedCoupons(dirPath string, db *gorm.DB) error {
 				continue
 			}
 
-			// Create coupon record
-			coupon := &Coupon{
-				Code:       couponCode,
-				SourceFile: []CouponSource{*source},
+			// Create or find coupon record
+			var coupon Coupon
+			result := db.Where("code = ?", couponCode).First(&coupon)
+			if result.Error != nil {
+				if result.Error == gorm.ErrRecordNotFound {
+					// Create new coupon
+					coupon = Coupon{
+						Code: couponCode,
+					}
+					if err := db.Create(&coupon).Error; err != nil {
+						return utils.WrapError(err, "failed to create coupon record")
+					}
+				} else {
+					return utils.WrapError(result.Error, "failed to check existing coupon")
+				}
 			}
-			if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(coupon).Error; err != nil {
-				return utils.WrapError(err, "failed to create coupon record")
+
+			if err := db.Model(&coupon).Association("SourceFile").Append(source); err != nil {
+				return utils.WrapError(err, "failed to create association for coupon: "+couponCode)
 			}
 		}
 
 		if err := scanner.Err(); err != nil {
 			return utils.WrapError(err, "error reading file: "+file)
 		}
+	}
+
+
+	var coupons []Coupon
+	if err := db.Preload("SourceFile").Find(&coupons).Error; err != nil {
+		return utils.WrapError(err, "Failed to fetch coupons")
+	}
+	for _, c := range coupons {
+		logger.Info(c.Code, c.SourceFile)
 	}
 
 	return nil
