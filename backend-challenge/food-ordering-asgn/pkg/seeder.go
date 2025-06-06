@@ -2,12 +2,15 @@ package pkg
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/parvez0/food-ordering-asgn/utils"
 )
@@ -36,8 +39,12 @@ func SeedDatabase(db *gorm.DB) error {
 		return utils.WrapError(nil, "no products available for seeding orders")
 	}
 
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		return errors.New("Could not get caller info")
+	}
 	// Seed coupons from files  
-	return seedCoupons("./data", db)
+	return seedCoupons(filepath.Join(filepath.Dir(file), "../data"), db)
 }
 
 func seedProductData(db *gorm.DB) ([]Product, error) {
@@ -103,7 +110,7 @@ func seedCoupons(dirPath string, db *gorm.DB) error {
 		source := &CouponSource{
 			Source: file,
 		}
-		if err := db.Create(source).Error; err != nil {
+		if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(source).Error; err != nil {
 			return utils.WrapError(err, "failed to create couponSource record")
 		}
 
