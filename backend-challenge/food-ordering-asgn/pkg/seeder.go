@@ -103,12 +103,12 @@ func seedCoupons(dirPath string, db *gorm.DB) error {
 	}
 
 	// Regex for matching only string coupons
-	stringPattern := regexp.MustCompile(`\w{8,10}`)
+	stringPattern := regexp.MustCompile(`[A-Za-z]{8,10}`)
 
 	for _, file := range files {
 		// Create source record for the file
 		source := &CouponSource{
-			Source: file,
+			Source: filepath.Base(file),
 		}
 		if err := db.Clauses(clause.OnConflict{DoNothing: true}).Create(source).Error; err != nil {
 			return utils.WrapError(err, "failed to create couponSource record")

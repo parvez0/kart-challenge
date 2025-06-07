@@ -64,7 +64,7 @@ type Coupon struct {
 type CouponSource struct {
 	ID     uint     `gorm:"primaryKey;autoIncrement"`                    
 	Source string   `gorm:"not null;unique"`                      
-	Coupon []Coupon `gorm:"many2many:coupon_sources;constraint:OnDelete:CASCADE"`     
+	// Coupon []Coupon `gorm:"many2many:coupon_sources;constraint:OnDelete:CASCADE"`     
 }
 
 func (CouponSource) TableName() string {
